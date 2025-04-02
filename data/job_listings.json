@@ -1,0 +1,27 @@
+[
+  {
+    "title": "Software Engineer",
+    "company": "Google",
+    "location": "Not specified",
+    "description": "Custom job description for Software Engineer at Google",
+    "requirements": [
+      {
+        "skill": "python",
+        "importance": 1.0
+      },
+      {
+        "skill": "tensorflow",
+        "importance": 0.9
+      },
+      {
+        "skill": "machine learning",
+        "importance": 0.8
+      },
+      {
+        "skill": "cloud",
+        "importance": 0.7
+      }
+    ],
+    "url": ""
+  }
+]

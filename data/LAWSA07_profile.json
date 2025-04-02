@@ -1,0 +1,30 @@
+{
+  "name": "Himanshu Singh Aswal",
+  "bio": "Final-year B.Tech CSE student passionate about AI, Machine Learning, Blockchain, Full-Stack Development, and Intelligent Automation",
+  "location": "Dehradun",
+  "skills": [
+    {
+      "name": "Python"
+    },
+    {
+      "name": "TensorFlow"
+    },
+    {
+      "name": "React"
+    },
+    {
+      "name": "Blockchain"
+    },
+    {
+      "name": "Flask"
+    }
+  ],
+  "projects": [],
+  "github_stats": {
+    "followers": 0,
+    "following": 0,
+    "contributions": 0,
+    "stars": 0,
+    "repositories": 0
+  }
+}
