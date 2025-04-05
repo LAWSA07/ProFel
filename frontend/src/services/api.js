@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Get the backend URL from environment variables or use the default
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'https://profel.onrender.com/api';
 
 // Track API availability to avoid multiple failed requests
 let isApiAvailable = true;
