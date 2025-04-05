@@ -1,0 +1,197 @@
+{
+  "username": "LAWSA07",
+  "platform": "github",
+  "data": {
+    "username": "LAWSA07",
+    "name": "Himanshu Singh Aswal",
+    "bio": "code-code-code-push",
+    "location": "dehradun",
+    "email": "",
+    "website": "",
+    "company": "",
+    "followers": "7",
+    "following": "21",
+    "contributions": {
+      "total": "129",
+      "streak": {
+        "current": "0",
+        "longest": "0"
+      }
+    },
+    "skills": [],
+    "projects": [],
+    "repositories": [
+      {
+        "name": "Agricultural-Sustainability-Advisor",
+        "description": "multi agent system that uses context from your custom dataset(farmer's personal) both online , offline features.",
+        "language": "Python",
+        "stars": "0",
+        "forks": "0",
+        "updated": "2025-04-03T19:24:16Z"
+      },
+      {
+        "name": "Assignment-Plagarism-Detection",
+        "description": "Education tool that will ease the grading process.",
+        "language": "JavaScript",
+        "stars": "0",
+        "forks": "0",
+        "updated": "2025-04-03T04:34:37Z"
+      },
+      {
+        "name": "ProFel",
+        "description": "AI-Powered Digital Profile Analyzer for Developers",
+        "language": "JavaScript",
+        "stars": "0",
+        "forks": "0",
+        "updated": "2025-04-02T19:33:27Z"
+      },
+      {
+        "name": "medResAI",
+        "description": "complete end to end site for drug discovery predictions",
+        "language": "TypeScript",
+        "stars": "0",
+        "forks": "0",
+        "updated": "2025-03-30T10:34:18Z"
+      },
+      {
+        "name": "Real-Data-generation-Techniques",
+        "description": "in this repo i have two techniques that i use for dataset generation out of real medical data",
+        "language": "Jupyter Notebook",
+        "stars": "0",
+        "forks": "0",
+        "updated": "2025-03-30T07:14:26Z"
+      },
+      {
+        "name": "pese-lab-assignement",
+        "description": "assignement given by our PESE instructor",
+        "language": "TypeScript",
+        "stars": "0",
+        "forks": "0",
+        "updated": "2025-03-16T06:51:25Z"
+      },
+      {
+        "name": "flask_assignement",
+        "description": "education tool",
+        "language": "Python",
+        "stars": "0",
+        "forks": "0",
+        "updated": "2025-03-11T07:08:11Z"
+      },
+      {
+        "name": "plagexit",
+        "description": "Education tool for institutes.",
+        "language": "Python",
+        "stars": "0",
+        "forks": "0",
+        "updated": "2025-03-10T04:45:42Z"
+      },
+      {
+        "name": "college_portfolio",
+        "description": "",
+        "language": "TypeScript",
+        "stars": "0",
+        "forks": "0",
+        "updated": "2025-03-07T17:37:35Z"
+      },
+      {
+        "name": "Medic-ChatBot",
+        "description": "medical chatbot",
+        "language": "TypeScript",
+        "stars": "1",
+        "forks": "2",
+        "updated": "2025-03-06T14:19:30Z"
+      },
+      {
+        "name": "Algorithms",
+        "description": "A collection of algorithms and data structures",
+        "language": "Java",
+        "stars": "0",
+        "forks": "0",
+        "updated": "2025-02-23T16:00:51Z"
+      },
+      {
+        "name": "College_Profile",
+        "description": "Detailed Technical profiled",
+        "language": "",
+        "stars": "0",
+        "forks": "0",
+        "updated": "2025-02-23T01:50:28Z"
+      },
+      {
+        "name": "quant",
+        "description": "handwritten text recognition(next js web)",
+        "language": "Jupyter Notebook",
+        "stars": "1",
+        "forks": "1",
+        "updated": "2025-02-16T11:53:44Z"
+      },
+      {
+        "name": "leetcode",
+        "description": "\ud83d\udd25LeetCode solutions in any programming language | \u591a\u79cd\u7f16\u7a0b\u8bed\u8a00\u5b9e\u73b0 LeetCode\u3001\u300a\u5251\u6307 Offer\uff08\u7b2c 2 \u7248\uff09\u300b\u3001\u300a\u7a0b\u5e8f\u5458\u9762\u8bd5\u91d1\u5178\uff08\u7b2c 6 \u7248\uff09\u300b\u9898\u89e3",
+        "language": "Java",
+        "stars": "0",
+        "forks": "0",
+        "updated": "2025-02-07T06:58:07Z"
+      },
+      {
+        "name": "Lawsa07",
+        "description": "Namaste!!",
+        "language": "",
+        "stars": "0",
+        "forks": "0",
+        "updated": "2025-02-04T16:29:15Z"
+      },
+      {
+        "name": "first-contributions",
+        "description": "\ud83d\ude80\u2728 Help beginners to contribute to open source projects",
+        "language": "",
+        "stars": "0",
+        "forks": "0",
+        "updated": "2025-01-25T15:00:47Z"
+      },
+      {
+        "name": "JOBIFY",
+        "description": "job tracking app",
+        "language": "JavaScript",
+        "stars": "0",
+        "forks": "0",
+        "updated": "2025-01-22T13:36:48Z"
+      },
+      {
+        "name": "SPOKE",
+        "description": "music app",
+        "language": "Python",
+        "stars": "0",
+        "forks": "0",
+        "updated": "2025-01-10T16:39:33Z"
+      },
+      {
+        "name": "DeepFake-Detection",
+        "description": "finding Tom Cruise.",
+        "language": "Roff",
+        "stars": "1",
+        "forks": "1",
+        "updated": "2024-10-06T11:51:29Z"
+      },
+      {
+        "name": "Player-Productivity-Tracker-PPT-",
+        "description": "The Player Productivity Tracker (PPT) is a Python-based tool designed to track the productivity of players in various sports. It uses computer vision and machine learning techniques to analyze vide\u2026",
+        "language": "Python",
+        "stars": "2",
+        "forks": "1",
+        "updated": "2024-09-30T10:34:48Z"
+      },
+      {
+        "name": "Portfolio",
+        "description": "",
+        "language": "JavaScript",
+        "stars": "0",
+        "forks": "0",
+        "updated": "2024-09-12T15:16:15Z"
+      }
+    ]
+  },
+  "skills": [],
+  "embedding": null,
+  "updated_at": "2025-04-05 21:34:30.897557"
+}

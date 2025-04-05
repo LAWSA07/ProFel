@@ -1,4 +1,4 @@
-# AI-Powered Digital Profile Analyzer for Developers
+# Profel - AI-Powered Digital Profile Analyzer for Developers
 
 ## Problem Statement
 In today's competitive job market, a strong digital presence is crucial for tech professionals. Recruiters evaluate candidates based on GitHub activity, LinkedIn engagement, and coding platform performance (LeetCode, CodeChef, CodeForces). However, manually assessing multiple profiles is time-consuming and inconsistent, lacking a standardized evaluation framework.
@@ -8,16 +8,83 @@ In today's competitive job market, a strong digital presence is crucial for tech
 - **No standardized evaluation**: No clear way to measure and compare technical skills across platforms.
 - **Missing insights for improvement**: No guidance on how to enhance profiles for better career opportunities.
 
+## Concept Overview
+Profel is designed to create a system that takes a candidate's online profiles—like GitHub, LinkedIn, and LeetCode—and uses them to determine their technical skills. Using a smart language model, we extract keywords and technologies from those profiles and match them to job listings. The system then scores how well the candidate's skills fit each job opportunity.
+
+## System Architecture
+
+### 1. Frontend (User Interface)
+- React-based web application with a modern, responsive design
+- Simple forms for profile URL submission and job listing creation
+- Real-time feedback and loading states
+- Interactive dashboard for viewing matches and insights
+
+### 2. Backend Processing Pipeline
+- **Asynchronous Crawling**: Uses Crawl4AI for efficient multi-profile data collection
+- **Data Processing**:
+  - Text chunking for optimal processing
+  - LLM-powered skill extraction
+  - Vector embeddings generation
+- **Storage**: Efficient database design for profiles, jobs, and matches
+- **Matching Engine**: Sophisticated algorithm combining keyword matching and semantic similarity
+
 ## Key Features
-Our AI-powered Digital Profile Analyzer:
-- **Aggregates Data**: Automatically scrapes and verifies data from GitHub, LinkedIn, Codeforces and more coding platforms.
-- **Profile Scoring**: Analyzes coding contributions, project diversity, problem-solving skills, and professional engagement.
-- **Insight Generation**: Provides a detailed breakdown of strengths, weaknesses, and actionable recommendations.
-- **Recruiter Readiness Score**: Generates a hiring potential score to help users optimize their digital presence.
+- **Data Aggregation**: Automatically scrapes and verifies data from:
+  - GitHub (repositories, contributions, README files)
+  - LinkedIn (coming soon)
+  - LeetCode (coming soon)
+  - CodeForces (coming soon)
+- **Profile Scoring**:
+  - Analyzes coding contributions
+  - Evaluates project diversity
+  - Assesses problem-solving skills
+  - Measures professional engagement
+- **Insight Generation**:
+  - Detailed strength/weakness analysis
+  - Actionable recommendations
+  - Skill gap identification
+- **Recruiter Readiness Score**:
+  - Hiring potential calculation
+  - Profile optimization suggestions
+  - Comparative analysis
+
+## Technical Implementation
+
+### Frontend Stack
+- React.js for UI components
+- TailwindCSS for styling
+- React Router for navigation
+- Local Storage for data persistence
+- Spline for 3D background effects
+
+### Backend Stack
+- Python Flask backend
+- Crawl4AI for asynchronous web scraping
+- LLM integration (deepseek-r1-distill-llama-70b via Groq)
+- Custom matching algorithms
+- RESTful API design
+
+## Project Structure
+```
+.
+├── frontend/                # React frontend application
+│   ├── src/
+│   │   ├── components/     # Reusable UI components
+│   │   ├── pages/         # Page components
+│   │   ├── utils/         # Helper functions
+│   │   └── App.js         # Main application component
+│   ├── public/            # Static assets
+│   └── package.json       # Frontend dependencies
+├── backend/               # Python Flask backend
+│   ├── app.py            # Main server file
+│   ├── utils/            # Utility functions
+│   │   ├── github_utils.py    # GitHub scraping utilities
+│   │   └── matching_utils.py  # Profile-job matching utilities
+│   └── requirements.txt   # Python dependencies
+└── README.md             # Project documentation
+```
 
 ## Screenshots
-
-Here's how our application looks in action:
 
 ### Home Page
 ![Home Page](images/Screenshot%202025-04-03%20005314.png)
@@ -31,128 +98,14 @@ Here's how our application looks in action:
 ### Matching Results
 ![Matching Results](images/Screenshot%202025-04-03%20005341.png)
 
-## Technical Implementation
+## Installation and Setup
 
-This project is a Python tool that extracts professional profile data from GitHub and matches it against target job descriptions. It utilizes asynchronous programming with Crawl4AI and a language model-based extraction strategy (deepseek-r1-distill-llama-70b via Groq) to analyze a candidate's skills and match them with job requirements.
-
-### Features
-
-- Asynchronous web crawling using [Crawl4AI](https://pypi.org/project/Crawl4AI/)
-- Data extraction powered by a language model (LLM) via Groq API
-- Profile collection from GitHub (skills and repositories analysis)
-- Target job matching with custom importance weights for skills
-- Intelligent skill matching algorithm with score calculation
-- JSON export of extracted data and match results
-- Modular and easy-to-follow code structure
-- Web interface for easy visualization and interaction
-
-## Project Structure
-```
-.
-├── main.py                  # Main entry point
-├── config.py                # Configuration (selectors, etc.)
-├── models/
-│   ├── profile.py           # Profile data model
-│   ├── job.py               # Job listing data model
-│   └── match.py             # Match result data model
-├── utils/
-│   ├── data_utils.py        # Data processing utilities
-│   ├── scraper_utils.py     # Scraping utilities
-│   └── matching_utils.py    # Profile-job matching utilities
-├── scrapers/
-│   └── github.py            # GitHub scraper
-├── web-version/             # Web application
-│   ├── frontend/            # React frontend
-│   └── backend/             # Python Flask backend
-├── data/                    # Output directory for JSON files
-├── requirements.txt         # Python package dependencies
-├── .env                     # Environment variables (API keys)
-└── README.MD                # This file
-```
-
-## Installation
-
-1. **Create and Activate a Conda Environment**
-
-   ```bash
-   conda create -n deep-seek-crawler python=3.12 -y
-   conda activate deep-seek-crawler
-   ```
-
-2. **Install Dependencies**
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Install Playwright Browsers**
-
-   ```bash
-   python -m playwright install
-   ```
-
-4. **Set Up Your Environment Variables**
-
-   Create a `.env` file in the root directory with content similar to:
-
-   ```env
-   GROQ_API_KEY=your_groq_api_key_here
-   ```
-
-   *(Note: The `.env` file is in your .gitignore, so it won't be pushed to version control.)*
-
-## Running the Command Line Version
-
-To start the skill matcher, run:
-
-```bash
-python main.py
-```
-
-The script will:
-1. Prompt you to enter GitHub usernames (comma-separated)
-2. Prompt you to enter target job descriptions with required skills
-3. Crawl the GitHub profiles to extract skills and project information
-4. Match the profiles against the target job descriptions
-5. Display match scores and save the results
-
-### Input Format
-
-For target job descriptions, use the following format:
-```
-<job_title> | <company> | <key_skills_comma_separated>
-```
-
-Example:
-```
-Senior Python Developer | Google | python,django,machine learning,sql
-```
-
-The skills listed first are considered more important for the matching algorithm.
-
-## Running the Web Version
-
-The web version provides a user-friendly interface for interacting with the tool.
-
-### Backend Setup
-
-1. Navigate to the backend directory:
-   ```bash
-   cd web-version/backend
-   ```
-
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. Run the Flask server:
-   ```bash
-   python app.py
-   ```
+### Prerequisites
+- Node.js (v14 or higher)
+- Python 3.12
+- Git
 
 ### Frontend Setup
-
 1. Navigate to the frontend directory:
    ```bash
    cd web-version/frontend
@@ -168,40 +121,76 @@ The web version provides a user-friendly interface for interacting with the tool
    npm start
    ```
 
-4. Open your browser and navigate to `http://localhost:3000`
+### Backend Setup
+1. Create and activate a Python virtual environment:
+   ```bash
+   conda create -n profel-env python=3.12 -y
+   conda activate profel-env
+   ```
 
-## Output Files
+2. Navigate to the backend directory:
+   ```bash
+   cd web-version/backend
+   ```
 
-The results are saved to the `data/` directory:
-- `{username}_profile.json` - Individual profile data
-- `job_listings.json` - Target job descriptions
-- `profile_job_matches.json` - Match results with scores
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-## Configuration
+4. Install Playwright browsers:
+   ```bash
+   python -m playwright install
+   ```
 
-The `config.py` file contains key constants used throughout the project:
+5. Set up environment variables:
+   Create a `.env` file with:
+   ```env
+   GROQ_API_KEY=your_groq_api_key_here
+   ```
 
-- **SELECTORS**: CSS selectors for GitHub scraping
-- **PROFILE_REQUIRED_KEYS**: Required fields for a valid profile
-- **JOB_REQUIRED_KEYS**: Required fields for a valid job listing
-- **MATCH_THRESHOLDS**: Thresholds for match quality categories
+6. Start the Flask server:
+   ```bash
+   python app.py
+   ```
 
-## Extending the Project
+## Usage Guide
 
-The project is designed to be easily extensible:
+1. **Profile Submission**
+   - Navigate to the Profiles page
+   - Enter your GitHub username
+   - Submit for analysis
 
-1. **Adding More Platforms**: Create new scraper modules for LinkedIn, LeetCode, etc. in the `scrapers/` directory
-2. **Enhancing Match Algorithm**: Modify `utils/matching_utils.py` to improve matching logic
-3. **Adding Output Formats**: Extend `utils/data_utils.py` to support additional output formats
-4. **Expanding Web Interface**: Add more features to the React frontend
+2. **Job Listing Creation**
+   - Go to the Jobs page
+   - Fill in job details and required skills
+   - Submit the listing
 
-## Additional Notes
+3. **View Matches**
+   - Visit the Matching page
+   - See your profile matches with job listings
+   - Review detailed match scores and recommendations
 
-- **Rate Limiting**: The tool includes retry mechanisms with exponential backoff for handling API rate limits
-- **Data Reduction**: The amount of data processed is limited to avoid hitting API limits
-- **Error Handling**: Comprehensive error handling ensures the tool continues running even when some components fail
-- **Local Storage**: The web version can function without a backend using localStorage for persistence
+## Future Enhancements
+- Integration with LinkedIn API
+- LeetCode profile analysis
+- CodeForces rating integration
+- Enhanced matching algorithms
+- Machine learning-based skill predictions
+- Automated profile improvement suggestions
+
+## Contributing
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ## License
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-MIT License
+## Acknowledgments
+- Crawl4AI for the web crawling framework
+- Groq for LLM API access
+- React community for frontend components
+- All contributors and testers

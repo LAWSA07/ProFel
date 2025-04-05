@@ -37,7 +37,29 @@ export const getJob = async (jobId) => {
 export const createJob = async (jobData) => {
   try {
     const response = await api.post('/jobs', jobData);
-    return response.data;
+
+    // Check if response structure is as expected
+    if (response && response.job) {
+      return response.job;
+    } else if (response && typeof response === 'object') {
+      // If response doesn't have job property but is an object,
+      // assume the response itself is the job
+      return {
+        ...response,
+        // Ensure required fields exist
+        id: response.id || `job_${Date.now()}`,
+        title: response.title || jobData.title || 'Untitled Job',
+        company: response.company || jobData.company || 'Unknown Company'
+      };
+    }
+
+    // If response is not as expected, create a fallback job
+    console.warn('API returned unexpected response format, using fallback', response);
+    return {
+      ...jobData,
+      id: `job_${Date.now()}`,
+      created_at: new Date().toISOString()
+    };
   } catch (error) {
     console.error('Error creating job:', error);
     throw error;

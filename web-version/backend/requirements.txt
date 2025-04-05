@@ -1,9 +1,21 @@
-fastapi==0.104.1
-uvicorn==0.24.0
-pydantic==2.10.6
+# Web server
+flask==2.3.3
+flask-cors==4.0.0
+gunicorn==21.2.0
+
+# Database
+psycopg2-binary==2.9.7
 python-dotenv==1.0.0
+
+# Web scraping
+aiohttp>=3.11.11
+beautifulsoup4==4.12.2
+playwright>=1.49.0
+Crawl4AI==0.5.0.post8
+
+# Data processing
+numpy>=1.26.0
 requests==2.31.0
-Crawl4AI==0.4.247
-python-multipart==0.0.6
-aiohttp==3.9.1
-httpx==0.25.2
+
+# Vector operations (for PostgreSQL pgvector)
+pgvector==0.2.3

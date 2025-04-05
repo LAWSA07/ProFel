@@ -1,20 +1,59 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import MatchForm from '../components/MatchForm';
-import MatchResultCard from '../components/MatchResultCard';
-import { matchProfileToJob } from '../services/matchService';
+import { calculateMatch, calculateCombinedMatch, performLocalMatch } from '../services/matchService';
+import CombinedProfileSelector from '../components/CombinedProfileSelector';
 
 const MatchingPage = () => {
   const [profiles, setProfiles] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [matchStatus, setMatchStatus] = useState({ loading: false, error: null });
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [useCombinedMode, setUseCombinedMode] = useState(false);
+  const [selectedCombinedProfiles, setSelectedCombinedProfiles] = useState([]);
+
+  // Use useCallback to memoize the loadDataFromStorage function
+  const loadDataFromStorage = useCallback(() => {
+    try {
+      setLoading(true);
+      setErrorMessage(null);
+
+      // Load profiles
+      const savedProfiles = localStorage.getItem('profiles');
+      if (savedProfiles) {
+        const parsedProfiles = JSON.parse(savedProfiles);
+        console.log('Loaded profiles from storage:', parsedProfiles);
+        setProfiles(parsedProfiles);
+      }
+
+      // Load jobs
+      const savedJobs = localStorage.getItem('jobs');
+      if (savedJobs) {
+        const parsedJobs = JSON.parse(savedJobs);
+        console.log('Loaded jobs from storage:', parsedJobs);
+        setJobs(parsedJobs);
+      }
+
+      // Load matches and handle legacy data
+      const savedMatches = localStorage.getItem('matches');
+      if (savedMatches) {
+        const parsedMatches = JSON.parse(savedMatches);
+        console.log('Loaded matches from storage:', parsedMatches);
+        setMatches(upgradeLegacyMatches(parsedMatches));
+      }
+
+      setLoading(false);
+    } catch (err) {
+      setErrorMessage('Failed to load data from storage');
+      console.error('Error loading data from storage:', err);
+      setLoading(false);
+    }
+  }, []);
 
   // Load existing data on component mount
   useEffect(() => {
     loadDataFromStorage();
-  }, []);
+  }, [loadDataFromStorage]);
 
   // Save matches to localStorage whenever they change
   useEffect(() => {
@@ -23,327 +62,392 @@ const MatchingPage = () => {
     }
   }, [matches]);
 
-  const loadDataFromStorage = () => {
-    try {
-      setLoading(true);
-      setError(null);
+  // Handle legacy match data that might not have skill information
+  const upgradeLegacyMatches = (matchesData) => {
+    if (!matchesData || !Array.isArray(matchesData)) return [];
 
-      // Load profiles
-      const savedProfiles = localStorage.getItem('profiles');
-      if (savedProfiles) {
-        setProfiles(JSON.parse(savedProfiles));
+    return matchesData.map(match => {
+      if (!match) return null;
+
+      // Make sure we have a consistent naming convention
+      const newMatch = { ...match };
+
+      // Convert old matchedSkills to skills_matched if present
+      if (match.matchedSkills && !match.skills_matched) {
+        newMatch.skills_matched = match.matchedSkills;
+        delete newMatch.matchedSkills;
+      } else if (!match.skills_matched) {
+        newMatch.skills_matched = [];
       }
 
-      // Load jobs
-      const savedJobs = localStorage.getItem('jobs');
-      if (savedJobs) {
-        setJobs(JSON.parse(savedJobs));
+      // Convert old missingSkills to skills_missing if present
+      if (match.missingSkills && !match.skills_missing) {
+        newMatch.skills_missing = match.missingSkills;
+        delete newMatch.missingSkills;
+      } else if (!match.skills_missing) {
+        newMatch.skills_missing = [];
       }
 
-      // Load matches
-      const savedMatches = localStorage.getItem('matches');
-      if (savedMatches) {
-        setMatches(JSON.parse(savedMatches));
-      }
+      return newMatch;
+    }).filter(Boolean);
+  };
 
-      setLoading(false);
-    } catch (err) {
-      setError('Failed to load data from storage');
-      console.error('Error loading data from storage:', err);
-      setLoading(false);
+  // Handle when user toggles between single and combined profile mode
+  const handleToggleCombinedMode = () => {
+    setUseCombinedMode(!useCombinedMode);
+    // Reset selected profiles when toggling off combined mode
+    if (useCombinedMode) {
+      setSelectedCombinedProfiles([]);
     }
   };
 
-  const handleMatchSubmit = async ({ profileId, jobId }) => {
-    if (!profileId || !jobId) {
-      setMatchStatus({
-        loading: false,
-        error: 'Profile or job ID is missing'
-      });
-      return;
-    }
-
+  // Handle match submission with support for combined profiles
+  const handleMatchSubmit = async (formData) => {
     try {
-      setMatchStatus({ loading: true, error: null });
+      setLoading(true);
+      setErrorMessage(null);
 
-      // Find the profile and job objects
-      const profile = profiles.find(p => p?.username === profileId || p?.id === profileId);
-      const job = jobs.find(j => j?.id === jobId);
+      // Get job details
+      console.log('Starting match calculation for job:', formData.job);
+      const job = jobs.find(j => j.id === formData.job) || null;
 
-      if (!profile || !job) {
-        throw new Error('Profile or job not found');
+      if (!job) {
+        setErrorMessage('Job not found');
+        setLoading(false);
+        return;
       }
 
       let matchResult;
 
-      // Try to use the API first
-      try {
-        matchResult = await matchProfileToJob(profileId, jobId);
-      } catch (apiError) {
-        console.error('API error, calculating match locally:', apiError);
+      if (useCombinedMode && selectedCombinedProfiles.length > 0) {
+        console.log('Using combined profiles for matching:', selectedCombinedProfiles);
 
-        // Fall back to a simple local match calculation
-        matchResult = calculateLocalMatch(profile, job);
-      }
-
-      // Add to matches list (or replace if exists)
-      setMatches(prevMatches => {
-        // See if we already have a match for this profile and job
-        const existingIndex = prevMatches.findIndex(
-          m => (m.profile_id === profileId || m.profile_name === profile.name) && m.job_id === jobId
-        );
-
-        if (existingIndex >= 0) {
-          const updatedMatches = [...prevMatches];
-          updatedMatches[existingIndex] = matchResult;
-          return updatedMatches;
-        } else {
-          return [...prevMatches, matchResult];
-        }
-      });
-
-      setMatchStatus({ loading: false, error: null });
-    } catch (err) {
-      setMatchStatus({
-        loading: false,
-        error: err.displayMessage || err.message || 'Failed to calculate match'
-      });
-      console.error('Error calculating match:', err);
-    }
-  };
-
-  const handleDeleteMatch = async (matchId) => {
-    if (!matchId) return;
-
-    if (window.confirm('Are you sure you want to delete this match result?')) {
-      try {
-        setLoading(true);
-
-        // Remove from matches list in state
-        setMatches(prevMatches => prevMatches.filter(match => match?.id !== matchId));
-
-        // Also remove from localStorage
-        const savedMatches = JSON.parse(localStorage.getItem('matches') || '[]');
-        const updatedMatches = savedMatches.filter(match => match?.id !== matchId);
-        localStorage.setItem('matches', JSON.stringify(updatedMatches));
-
-        setLoading(false);
-      } catch (err) {
-        setError(err.displayMessage || 'Failed to delete match');
-        setLoading(false);
-        console.error('Error deleting match:', err);
-      }
-    }
-  };
-
-  // Simple local matching algorithm
-  const calculateLocalMatch = (profile, job) => {
-    const profileSkills = extractProfileSkills(profile);
-    const jobSkills = extractJobSkills(job);
-
-    // Calculate matches
-    let totalImportance = 0;
-    let matchedImportance = 0;
-    const skillMatches = [];
-    const missingSkills = [];
-
-    jobSkills.forEach(jobSkill => {
-      const jobSkillName = jobSkill.name.toLowerCase();
-      const importance = jobSkill.importance || 0.5;
-      totalImportance += importance;
-
-      // Find matching profile skill
-      const matchingSkill = profileSkills.find(s =>
-        s.name.toLowerCase() === jobSkillName ||
-        s.name.toLowerCase().includes(jobSkillName) ||
-        jobSkillName.includes(s.name.toLowerCase())
-      );
-
-      if (matchingSkill) {
-        // Get proficiency level from skill object or default to 1.0
-        const proficiency = matchingSkill.proficiency || 1.0;
-
-        // Calculate match quality based on skill name match type
-        let matchQuality = 0.7; // Default for partial matches
-
-        // Exact match gets higher quality score
-        if (matchingSkill.name.toLowerCase() === jobSkillName) {
-          matchQuality = 1.0;
+        if (selectedCombinedProfiles.length === 0) {
+          setErrorMessage('Please select at least one profile');
+          setLoading(false);
+          return;
         }
 
-        // Final match score combines match quality and proficiency
-        const matchScore = matchQuality * proficiency;
-
-        // Add to matched importance with weighting
-        matchedImportance += importance * matchScore;
-
-        skillMatches.push({
-          skill_name: jobSkill.name,
-          importance: importance,
-          proficiency: proficiency,
-          match_quality: matchQuality,
-          match_score: matchScore,
-          weighted_score: importance * matchScore,
-          required: jobSkill.required || false
-        });
+        try {
+          matchResult = await calculateCombinedMatch(selectedCombinedProfiles, job);
+          console.log('API combined match result:', matchResult);
+        } catch (e) {
+          console.error('Error using API for combined match, falling back to local:', e);
+          // If API fails, try to calculate for each profile individually and take average
+          matchResult = await calculateCombinedMatch(selectedCombinedProfiles, job);
+        }
       } else {
-        missingSkills.push({
-          name: jobSkill.name,
-          importance: importance,
-          required: jobSkill.required || false
-        });
+        // Single profile matching
+        const profileId = formData.profile;
+        console.log('Using single profile for matching:', profileId);
+
+        if (!profileId) {
+          setErrorMessage('Please select a profile');
+          setLoading(false);
+          return;
+        }
+
+        const profile = profiles.find(p => p.id === profileId || p.username === profileId);
+
+        if (!profile) {
+          setErrorMessage('Profile not found');
+          setLoading(false);
+          return;
+        }
+
+        try {
+          matchResult = await calculateMatch(profile, job);
+          console.log('API match result:', matchResult);
+        } catch (e) {
+          console.error('Error using API for match, falling back to local:', e);
+          matchResult = await calculateMatch(profile, job);
+        }
       }
-    });
 
-    // Calculate overall match percentage
-    const overallMatch = Math.round((matchedImportance / totalImportance) * 100);
+      // Create new match object
+      const matchId = `match-${Date.now()}`;
+      const timestamp = new Date().toISOString();
 
-    // Generate recommendation
-    let recommendation = '';
-    if (overallMatch >= 85) {
-      recommendation = 'Excellent Match: This candidate has most of the required skills and would be an excellent fit for this position.';
-    } else if (overallMatch >= 70) {
-      recommendation = 'Good Match: This candidate has many of the required skills and would likely be a good fit with some training.';
-    } else if (overallMatch >= 50) {
-      recommendation = 'Moderate Match: This candidate has some of the required skills but may need significant training or may not be ideal for this specific role.';
-    } else if (overallMatch >= 30) {
-      recommendation = 'Weak Match: This candidate is missing many critical skills required for this position.';
-    } else {
-      recommendation = 'Poor Match: This candidate does not appear to have the necessary skills for this position.';
+      const newMatch = {
+        id: matchId,
+        profileId: useCombinedMode ? selectedCombinedProfiles.map(p => p.username || p.id).join(',') : formData.profile,
+        jobId: formData.job,
+        score: matchResult.overall_score || 0.5,
+        timestamp,
+        skills_matched: matchResult.skills_matched || [],
+        skills_missing: matchResult.skills_missing || [],
+        platforms: useCombinedMode ? matchResult.platforms : [profiles.find(p => p.id === formData.profile)?.platform],
+        usedCombinedProfiles: useCombinedMode
+      };
+
+      console.log(`New ${useCombinedMode ? 'combined' : 'single'} match saved:`, newMatch);
+
+      // Add to matches
+      const updatedMatches = [...matches, newMatch];
+      setMatches(updatedMatches);
+
+      // Save to localStorage
+      localStorage.setItem('matches', JSON.stringify(updatedMatches));
+
+      setLoading(false);
+    } catch (err) {
+      setErrorMessage('Failed to calculate match: ' + (err.message || 'Unknown error'));
+      setLoading(false);
+      console.error('Error in match calculation:', err);
     }
-
-    // Check if any required skills are missing
-    const missingRequiredSkills = missingSkills.filter(skill => skill.required);
-    if (missingRequiredSkills.length > 0) {
-      recommendation += ` Missing ${missingRequiredSkills.length} required skill(s).`;
-    }
-
-    // Find strengths (high-matching important skills)
-    const strengths = skillMatches
-      .filter(match => match.importance >= 0.7 && match.match_score >= 0.7)
-      .map(match => match.skill_name);
-
-    return {
-      id: `match_${Date.now()}`,
-      profile_id: profile.id || profile.username,
-      profile_name: profile.name || profile.username,
-      job_id: job.id,
-      job_title: job.title,
-      company: job.company,
-      overall_match: overallMatch,
-      skill_matches: skillMatches,
-      missing_skills: missingSkills.map(s => s.name), // Keep backward compatibility
-      missing_skills_details: missingSkills, // Include full details
-      strengths: strengths,
-      recommendation: recommendation,
-      created_at: new Date().toISOString()
-    };
   };
 
-  // Extract skills from profile in a consistent format
-  const extractProfileSkills = (profile) => {
-    if (!profile) return [];
-
-    const skills = [];
-
-    if (profile.skills && Array.isArray(profile.skills)) {
-      profile.skills.forEach(skill => {
-        if (typeof skill === 'string') {
-          skills.push({ name: skill });
-        } else if (skill && skill.name) {
-          skills.push({
-            name: skill.name,
-            proficiency: skill.proficiency || skill.level || 1.0
-          });
-        }
-      });
+  const handleDeleteMatch = (matchId) => {
+    try {
+      setLoading(true);
+      console.log('Deleting match with ID:', matchId);
+      const updatedMatches = matches.filter(match => match.id !== matchId);
+      setMatches(updatedMatches);
+      localStorage.setItem('matches', JSON.stringify(updatedMatches));
+      setLoading(false);
+    } catch (err) {
+      setErrorMessage('Failed to delete match');
+      setLoading(false);
+      console.error('Error deleting match:', err);
     }
-
-    return skills;
-  };
-
-  // Extract skills from job in a consistent format
-  const extractJobSkills = (job) => {
-    if (!job) return [];
-
-    const skills = [];
-
-    if (job.skills && Array.isArray(job.skills)) {
-      job.skills.forEach(skill => {
-        if (typeof skill === 'string') {
-          skills.push({ name: skill, importance: 0.5 });
-        } else if (skill && skill.name) {
-          skills.push({
-            name: skill.name,
-            importance: skill.importance || 0.5
-          });
-        }
-      });
-    }
-
-    return skills;
   };
 
   return (
-    <div className="py-8">
-      <h1 className="text-3xl font-bold mb-8">Profile-Job Matching</h1>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-8">Profile Matching</h1>
 
-      {/* Error display */}
-      {error && (
-        <div className="mb-6 p-4 bg-red-100 border-l-4 border-red-500 text-red-700">
-          <p>{error}</p>
+      {errorMessage && (
+        <div className="mb-4 p-3 bg-red-100 border-l-4 border-red-500 text-red-700">
+          <p>{errorMessage}</p>
         </div>
       )}
 
-      {/* Match form */}
-      <div className="mb-8">
-        <MatchForm
-          profiles={profiles}
-          jobs={jobs}
-          onSubmit={handleMatchSubmit}
-          isLoading={matchStatus.loading}
-        />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="md:col-span-2">
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold">Create New Match</h2>
 
-        {matchStatus.error && (
-          <div className="mt-4 p-3 bg-red-100 border-l-4 border-red-500 text-red-700">
-            <p>{matchStatus.error}</p>
-          </div>
-        )}
-      </div>
-
-      {/* Match results listing */}
-      <div>
-        <h2 className="text-2xl font-bold mb-4">Match Results</h2>
-
-        {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-          </div>
-        ) : matches.length === 0 ? (
-          <div className="bg-gray-50 rounded-lg p-8 text-center">
-            <p className="text-gray-500">
-              No match results yet. Create one using the form above.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {matches.map((match) => (
-              <div key={match.id || `${match.profile_id}-${match.job_id}`} className="relative">
-                <MatchResultCard matchResult={match} />
+              <div className="flex items-center">
+                <span className="mr-2 text-sm text-gray-600">
+                  {useCombinedMode ? 'Combined Mode' : 'Single Profile'}
+                </span>
                 <button
-                  onClick={() => handleDeleteMatch(match.id)}
-                  className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1"
-                  aria-label="Delete match"
-                  title="Delete match"
+                  onClick={handleToggleCombinedMode}
+                  className="relative inline-flex items-center h-6 rounded-full w-11 bg-gray-200 focus:outline-none"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
+                  <span
+                    className={`inline-block w-4 h-4 transform transition-transform ${
+                      useCombinedMode ? 'translate-x-6 bg-blue-600' : 'translate-x-1 bg-white'
+                    } rounded-full shadow-lg`}
+                  />
                 </button>
               </div>
-            ))}
+            </div>
+
+            {useCombinedMode && (
+              <div className="mb-4">
+                <CombinedProfileSelector
+                  profiles={profiles}
+                  selectedProfiles={selectedCombinedProfiles}
+                  onSelectProfiles={setSelectedCombinedProfiles}
+                />
+              </div>
+            )}
+
+            <MatchForm
+              profiles={profiles}
+              jobs={jobs}
+              onSubmit={handleMatchSubmit}
+              isLoading={loading}
+              useCombinedMode={useCombinedMode}
+              selectedProfileCount={selectedCombinedProfiles.length}
+            />
           </div>
-        )}
+
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold mb-4">Match Results</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {matches.map(match => {
+                const job = jobs.find(j => j.id === match.jobId);
+                const profileInfo = match.usedCombinedProfiles
+                  ? `Combined profiles (${match.platforms?.join(', ')})`
+                  : profiles.find(p => p.id === match.profileId || p.username === match.profileId)?.name || match.profileId;
+
+                return (
+                  <div key={match.id} className="border rounded-lg shadow-md p-4 bg-white relative">
+                    <button
+                      onClick={() => handleDeleteMatch(match.id)}
+                      className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                      title="Delete match"
+                    >
+                      ×
+                    </button>
+
+                    <h3 className="font-bold text-lg">{profileInfo} → {job?.title} at {job?.company}</h3>
+                    <p className="text-sm text-gray-600">
+                      Platform: {match.platforms?.join(', ') || 'Unknown'} • {new Date(match.timestamp).toLocaleString()}
+                    </p>
+                    <div className="mt-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="font-bold text-xl">{Math.round(match.score * 100)}%</div>
+                        <div>Match Score</div>
+                      </div>
+
+                      <div className="mt-4">
+                        <h4 className="font-bold">Matching Skills:</h4>
+                        {match.skills_matched && match.skills_matched.length > 0 ? (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {match.skills_matched.map((skill, i) => (
+                              <span key={i} className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-500">No matching skills found</p>
+                        )}
+                      </div>
+
+                      <div className="mt-2">
+                        <h4 className="font-bold">Missing Skills:</h4>
+                        {match.skills_missing && match.skills_missing.length > 0 ? (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {match.skills_missing.map((skill, i) => (
+                              <span key={i} className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded">
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-500">No missing skills found</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div className="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 className="text-2xl font-bold mb-4">Profiles</h2>
+            {profiles.length === 0 ? (
+              <p className="text-gray-600">No profiles yet. Create profiles in their respective sections.</p>
+            ) : (
+              <div className="space-y-4">
+                {profiles.map((profile, index) => {
+                  if (!profile) return null;
+                  const profileId = profile.id || profile.username || `unknown-${index}`;
+                  const displayName = profile.name || profile.username || `Profile ${index + 1}`;
+
+                  // Extract skills
+                  const profileSkills = [];
+                  if (profile.skills && Array.isArray(profile.skills)) {
+                    profile.skills.forEach(skill => {
+                      if (typeof skill === 'string') {
+                        profileSkills.push(skill);
+                      } else if (skill && typeof skill === 'object' && skill.name) {
+                        profileSkills.push(skill.name);
+                      }
+                    });
+                  }
+
+                  return (
+                    <div key={profileId} className="p-3 border rounded">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <div className="font-medium">{displayName}</div>
+                          <div className="text-xs text-gray-500">
+                            {profile.platform && <span className="mr-1">{profile.platform}</span>}
+                            {profile.username && <span className="mr-1">@{profile.username}</span>}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Skills */}
+                      <div className="mt-2">
+                        <h4 className="text-xs font-medium text-gray-700 mb-1">Skills:</h4>
+                        <div className="flex flex-wrap gap-1">
+                          {profileSkills.length > 0 ? (
+                            profileSkills.map((skill, idx) => (
+                              <span
+                                key={idx}
+                                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                              >
+                                {skill}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-xs text-gray-500">No skills found</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-2xl font-bold mb-4">Jobs</h2>
+            {jobs.length === 0 ? (
+              <p className="text-gray-600">No jobs yet. Create jobs in the Jobs section.</p>
+            ) : (
+              <div className="space-y-4">
+                {jobs.map((job, index) => {
+                  if (!job) return null;
+                  const jobId = job.id || `unknown-${index}`;
+
+                  // Extract job skills
+                  const jobSkills = [];
+                  if (job.skills && Array.isArray(job.skills)) {
+                    job.skills.forEach(skill => {
+                      if (typeof skill === 'string') {
+                        jobSkills.push(skill);
+                      } else if (skill && typeof skill === 'object' && skill.name) {
+                        jobSkills.push(skill.name);
+                      }
+                    });
+                  }
+
+                  return (
+                    <div key={jobId} className="p-3 border rounded">
+                      <div className="mb-2">
+                        <div className="font-medium">{job.title || `Job ${index + 1}`}</div>
+                        <div className="text-xs text-gray-500">
+                          {job.company && <span>{job.company}</span>}
+                        </div>
+                      </div>
+
+                      {/* Skills */}
+                      <div className="mt-2">
+                        <h4 className="text-xs font-medium text-gray-700 mb-1">Required Skills:</h4>
+                        <div className="flex flex-wrap gap-1">
+                          {jobSkills.length > 0 ? (
+                            jobSkills.map((skill, idx) => (
+                              <span
+                                key={idx}
+                                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
+                              >
+                                {skill}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-xs text-gray-500">No skills specified</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

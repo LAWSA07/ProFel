@@ -1,7 +1,7 @@
 import React from 'react';
 
 const JobCard = ({ job }) => {
-  if (!job) return null;
+  if (!job || typeof job !== 'object') return null;
 
   // Helper function to get color based on importance
   const getImportanceColor = (importance) => {
@@ -15,8 +15,8 @@ const JobCard = ({ job }) => {
     <div className="bg-white glass-effect rounded-lg shadow-lg overflow-hidden border border-gray-200 transition-all hover:shadow-xl">
       <div className="p-6">
         <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-800">{job.title}</h2>
-          <div className="text-gray-600 font-medium">{job.company}</div>
+          <h2 className="text-xl font-bold text-gray-800">{job.title || 'Untitled Job'}</h2>
+          <div className="text-gray-600 font-medium">{job.company || 'Unknown Company'}</div>
         </div>
 
         {job.location && (
@@ -54,7 +54,7 @@ const JobCard = ({ job }) => {
         )}
 
         {/* Skills section */}
-        {job.skills && job.skills.length > 0 && (
+        {job.skills && Array.isArray(job.skills) && job.skills.length > 0 && (
           <div className="mb-2">
             <div className="flex items-center mb-3">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -64,16 +64,19 @@ const JobCard = ({ job }) => {
             </div>
             <div className="flex flex-wrap gap-2 pl-7">
               {job.skills.map((skill, index) => {
+                if (!skill) return null;
+
                 const skillObj = typeof skill === 'string' ? { name: skill, importance: 0.5 } : skill;
+                const skillName = skillObj.name || 'Unnamed Skill';
                 const importance = skillObj.importance || 0.5;
 
                 return (
                   <div
-                    key={index}
+                    key={`${skillName}-${index}`}
                     className="relative group"
                   >
                     <span className={`${getImportanceColor(importance)} rounded-full px-3 py-1 text-sm backdrop-blur-sm transition-all hover:shadow-md`}>
-                      {skillObj.name}
+                      {skillName}
                       {importance && <span className="ml-1 font-bold">({Math.round(importance * 100)}%)</span>}
                     </span>
                     <div className="absolute hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-1 p-2 bg-gray-800 text-white text-xs rounded whitespace-nowrap z-10 backdrop-blur-sm">

@@ -21,15 +21,65 @@ const JobsPage = () => {
     }
   }, [jobs]);
 
+  // Add a cleanup mechanism on component mount to fix potentially corrupted job data
+  useEffect(() => {
+    cleanupJobsInStorage();
+  }, []);
+
   const loadJobsFromStorage = () => {
     try {
       const savedJobs = localStorage.getItem('jobs');
       if (savedJobs) {
-        setJobs(JSON.parse(savedJobs));
+        // Parse jobs and validate that they have the required structure
+        const parsedJobs = JSON.parse(savedJobs);
+
+        // Filter out invalid job entries
+        const validJobs = parsedJobs.filter(job =>
+          job &&
+          typeof job === 'object' &&
+          job.id &&
+          job.title &&
+          job.company
+        );
+
+        if (validJobs.length !== parsedJobs.length) {
+          console.warn(`Filtered out ${parsedJobs.length - validJobs.length} invalid job entries`);
+        }
+
+        setJobs(validJobs);
       }
     } catch (err) {
       console.error('Error loading jobs from storage:', err);
       setError('Failed to load saved jobs');
+      // In case of error, initialize with empty array
+      setJobs([]);
+    }
+  };
+
+  const cleanupJobsInStorage = () => {
+    try {
+      const savedJobs = localStorage.getItem('jobs');
+      if (savedJobs) {
+        const parsedJobs = JSON.parse(savedJobs);
+
+        // Filter out invalid job entries
+        const validJobs = parsedJobs.filter(job =>
+          job &&
+          typeof job === 'object' &&
+          job.id &&
+          job.title &&
+          job.company
+        );
+
+        if (validJobs.length !== parsedJobs.length) {
+          console.warn(`Found and fixed ${parsedJobs.length - validJobs.length} invalid job entries`);
+          localStorage.setItem('jobs', JSON.stringify(validJobs));
+        }
+      }
+    } catch (err) {
+      console.error('Error cleaning up jobs in storage:', err);
+      // If there's a parsing error, reset the jobs storage
+      localStorage.setItem('jobs', JSON.stringify([]));
     }
   };
 
@@ -37,10 +87,21 @@ const JobsPage = () => {
     try {
       setCreateStatus({ loading: true, error: null });
 
+      // Validate job data has required fields
+      if (!jobData.title || !jobData.company) {
+        throw new Error('Job title and company are required');
+      }
+
       // Try to use the API first
       let createdJob;
       try {
         createdJob = await createJob(jobData);
+
+        // Make sure we got a valid job object
+        if (!createdJob || typeof createdJob !== 'object') {
+          console.error('API returned invalid job object:', createdJob);
+          throw new Error('Invalid job data returned from API');
+        }
       } catch (apiError) {
         console.error('API error, falling back to local storage:', apiError);
 
@@ -54,6 +115,20 @@ const JobsPage = () => {
         };
       }
 
+      // Always ensure job has required properties
+      createdJob = {
+        ...createdJob,
+        id: createdJob.id || `job_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+        title: createdJob.title || jobData.title || 'Untitled Job',
+        company: createdJob.company || jobData.company || 'Unknown Company',
+        created_at: createdJob.created_at || new Date().toISOString()
+      };
+
+      // Process skills if they came as a string instead of an array
+      if (createdJob.skills_text && !createdJob.skills) {
+        createdJob.skills = parseSkills(createdJob.skills_text);
+      }
+
       // Add to jobs list
       setJobs(prevJobs => [...prevJobs, createdJob]);
 
@@ -61,7 +136,7 @@ const JobsPage = () => {
     } catch (err) {
       setCreateStatus({
         loading: false,
-        error: err.displayMessage || 'Failed to create job'
+        error: err.displayMessage || err.message || 'Failed to create job'
       });
       console.error('Error creating job:', err);
     }
@@ -170,7 +245,7 @@ const JobsPage = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {jobs.map((job) => (
+            {jobs.filter(job => job && job.id).map((job) => (
               <div key={job.id} className="relative">
                 <JobCard job={job} />
                 <button

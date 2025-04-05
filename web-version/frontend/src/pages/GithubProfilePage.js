@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import ProfileForm from '../components/ProfileForm';
 import ProfileCard from '../components/ProfileCard';
-import { fetchProfile } from '../services/githubService';
+import { fetchProfile } from '../services/profileService';
+import api from '../services/api';
 
 const ProfilesPage = () => {
   const [profiles, setProfiles] = useState([]);
@@ -40,40 +41,27 @@ const ProfilesPage = () => {
 
       let fetchedProfile;
 
-      // Handle different platform fetches (only GitHub implemented for now)
+      // Handle different platform fetches
       switch (activePlatform) {
         case 'github':
-          fetchedProfile = await fetchProfile(username);
-          break;
         case 'linkedin':
-          // Future implementation
-          fetchedProfile = {
-            platform: 'linkedin',
-            username,
-            name: username,
-            bio: 'LinkedIn profile data will be available in a future update',
-            _placeholder: true
-          };
-          break;
         case 'leetcode':
-          // Future implementation
-          fetchedProfile = {
-            platform: 'leetcode',
-            username,
-            name: username,
-            bio: 'LeetCode profile data will be available in a future update',
-            _placeholder: true
-          };
-          break;
         case 'codeforces':
-          // Future implementation
-          fetchedProfile = {
-            platform: 'codeforces',
-            username,
-            name: username,
-            bio: 'Codeforces profile data will be available in a future update',
-            _placeholder: true
-          };
+          try {
+            fetchedProfile = await fetchProfile(activePlatform, username);
+          } catch (err) {
+            console.warn(`Error from API, creating basic ${activePlatform} profile for localStorage:`, err);
+            // Create a basic profile as fallback
+            fetchedProfile = {
+              platform: activePlatform,
+              username: username,
+              name: username,
+              bio: `${activePlatform.charAt(0).toUpperCase() + activePlatform.slice(1)} profile fetched locally. To get full data, start the backend server.`,
+              location: '',
+              skills: [],
+              projects: []
+            };
+          }
           break;
         default:
           throw new Error(`Unsupported platform: ${activePlatform}`);
@@ -163,8 +151,8 @@ const ProfilesPage = () => {
           <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
         </svg>
       ),
-      description: "Import your LinkedIn profile to showcase your professional experience and network.",
-      comingSoon: true
+      description: "Add your LinkedIn profile to showcase your professional experience and connections.",
+      isImplemented: true
     },
     {
       id: 'leetcode',
@@ -174,8 +162,8 @@ const ProfilesPage = () => {
           <path d="M16.102 17.93l-2.697 2.607c-.466.467-1.111.662-1.823.662s-1.357-.195-1.824-.662l-4.332-4.363c-.467-.467-.702-1.15-.702-1.863s.235-1.357.702-1.824l4.319-4.38c.467-.467 1.125-.645 1.837-.645s1.357.195 1.823.662l2.697 2.606c.514.515 1.111.744 1.715.744 1.31 0 2.315-.915 2.315-2.301 0-.688-.254-1.329-.76-1.835l-2.747-2.687c-1.357-1.357-3.191-2.112-5.105-2.112s-3.748.755-5.105 2.112l-4.319 4.363C.963 10.562.193 12.426.193 14.407s.77 3.794 2.172 5.199l4.319 4.363c1.357 1.358 3.191 2.13 5.105 2.13s3.748-.773 5.105-2.13l2.747-2.665c.506-.506.76-1.147.76-1.836 0-1.386-1.005-2.301-2.315-2.301-.603 0-1.2.228-1.715.744l.031.03z" />
         </svg>
       ),
-      description: "Connect your LeetCode account to display your problem-solving abilities and contest rankings.",
-      comingSoon: true
+      description: "Add your LeetCode profile to showcase your problem-solving skills and algorithmic knowledge.",
+      isImplemented: true
     },
     {
       id: 'codeforces',

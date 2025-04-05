@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: profel-backend
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && gunicorn app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0
+      - key: PORT
+        value: 5000
+      - key: FLASK_DEBUG
+        value: "false"
+      - key: GROQ_API_KEY
+        sync: false
+
+  - type: web
+    name: profel-frontend
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: cd frontend && npx serve -s build -p $PORT
+    envVars:
+      - key: NODE_VERSION
+        value: 18.15.0
+      - key: PORT
+        value: 3000
+      - key: REACT_APP_API_URL
+        value: https://profel-backend.onrender.com/api
+      - key: REACT_APP_ENV
+        value: production

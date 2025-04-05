@@ -1,0 +1,93 @@
+{
+  "username": "octocat",
+  "platform": "github",
+  "data": {
+    "username": "octocat",
+    "name": "The Octocat",
+    "bio": "",
+    "location": "San Francisco",
+    "email": "",
+    "website": "",
+    "company": "@github",
+    "followers": "17.5k",
+    "following": "9",
+    "contributions": {
+      "total": "0",
+      "streak": {
+        "current": "0",
+        "longest": "0"
+      }
+    },
+    "skills": [],
+    "projects": [],
+    "repositories": [
+      {
+        "name": "Spoon-Knife",
+        "description": "This repo is for demonstration purposes only.",
+        "language": "HTML",
+        "stars": "12,920",
+        "forks": "150,267",
+        "updated": "2024-08-21T15:25:42Z"
+      },
+      {
+        "name": "Hello-World",
+        "description": "My first repository on GitHub!",
+        "language": "",
+        "stars": "2,899",
+        "forks": "2,844",
+        "updated": "2024-08-20T23:54:42Z"
+      },
+      {
+        "name": "linguist",
+        "description": "Language Savant. If your repository's language is being reported incorrectly, send us a pull request!",
+        "language": "Ruby",
+        "stars": "github-linguist/linguist",
+        "forks": "527",
+        "updated": "2024-08-14T07:35:16Z"
+      },
+      {
+        "name": "octocat.github.io",
+        "description": "",
+        "language": "CSS",
+        "stars": "810",
+        "forks": "393",
+        "updated": "2024-08-11T11:57:01Z"
+      },
+      {
+        "name": "git-consortium",
+        "description": "This repo is for demonstration purposes only.",
+        "language": "",
+        "stars": "415",
+        "forks": "110",
+        "updated": "2024-07-12T15:04:33Z"
+      },
+      {
+        "name": "boysenberry-repo-1",
+        "description": "Testing",
+        "language": "",
+        "stars": "violet-org/boysenberry-repo",
+        "forks": "319",
+        "updated": "2024-05-26T07:02:05Z"
+      },
+      {
+        "name": "hello-worId",
+        "description": "My first repository on GitHub.",
+        "language": "",
+        "stars": "531",
+        "forks": "206",
+        "updated": "2024-05-06T10:29:56Z"
+      },
+      {
+        "name": "test-repo1",
+        "description": "",
+        "language": "",
+        "stars": "309",
+        "forks": "26",
+        "updated": "2024-03-07T11:37:27Z"
+      }
+    ]
+  },
+  "skills": [],
+  "embedding": null,
+  "updated_at": "2025-04-05 19:58:11.443306"
+}
