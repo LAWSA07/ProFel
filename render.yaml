@@ -22,7 +22,8 @@ services:
     region: oregon
     plan: free
     buildCommand: cd frontend && npm install && npm run build
-    startCommand: cd frontend && npx serve -s build -p $PORT
+    startCommand: npx serve -s frontend/build -p $PORT
+    publishDir: frontend/build
     envVars:
       - key: NODE_VERSION
         value: 18.15.0
