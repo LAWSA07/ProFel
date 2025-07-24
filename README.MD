@@ -1,4 +1,7 @@
 # Profel - AI-Powered Digital Profile Analyzer for Developers
+### New Screenshot (2025-07-24)
+![New Screenshot](images/Screenshot%202025-07-24%20121605.png)
+
 
 ## Problem Statement
 In today's competitive job market, a strong digital presence is crucial for tech professionals. Recruiters evaluate candidates based on GitHub activity, LinkedIn engagement, and coding platform performance (LeetCode, CodeChef, CodeForces). However, manually assessing multiple profiles is time-consuming and inconsistent, lacking a standardized evaluation framework.
